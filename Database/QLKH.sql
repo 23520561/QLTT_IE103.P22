@@ -1,6 +1,148 @@
 CREATE DATABASE QLKH
 USE QLKH
+
 --- Tạo các bảng
+CREATE TABLE Users (
+    UserId INT PRIMARY KEY,
+    UserName VARCHAR(100),
+    UserEmail VARCHAR(100),
+    UserPassword VARCHAR(100),
+    PhoneNumber VARCHAR(20),
+    UserAddress VARCHAR(200)
+);
+
+CREATE TABLE Courses (
+    CourseId INT PRIMARY KEY,
+    CourseTitle VARCHAR(100),
+    CourseDesc TEXT,
+    CoursePrice DECIMAL(10,2),
+    CreatedAt DATETIME
+);
+
+CREATE TABLE Chapters (
+    ChapterId INT PRIMARY KEY,
+    CourseId INT,
+    ChapterTitle VARCHAR(100),
+    ChapterDesc TEXT,
+    ChapterPosition INT,
+    CreatedAt DATETIME,
+    FOREIGN KEY (CourseId) REFERENCES Courses(CourseId) ON DELETE CASCADE
+);
+
+CREATE TABLE Videos (
+    VideoId INT PRIMARY KEY,
+    VideoUrl VARCHAR(200),
+    VideoDesc TEXT,
+    VideoDuration INT,
+    CreatedAt DATETIME
+);
+
+CREATE TABLE Lessons (
+    LessonId INT PRIMARY KEY,
+    ChapterId INT,
+    VideoId INT,
+    LessonTitle VARCHAR(100),
+    LessonDesc TEXT,
+    CreatedAt DATETIME,
+    FOREIGN KEY (ChapterId) REFERENCES Chapters(ChapterId) ON DELETE CASCADE,
+    FOREIGN KEY (VideoId) REFERENCES Videos(VideoId) ON DELETE CASCADE
+);
+
+CREATE TABLE Documents (
+    DocumentId INT PRIMARY KEY,
+    LessonID INT,
+    DocumentUrl VARCHAR(200),
+    DocumentDesc TEXT,
+    CreatedAt DATETIME,
+    FOREIGN KEY (LessonID) REFERENCES Lessons(LessonID) ON DELETE CASCADE
+);
+
+CREATE TABLE Exams (
+    ExamId INT PRIMARY KEY,
+    CourseId INT,
+    ChapterId INT,
+    ExamName VARCHAR(100),
+    ExamDuration INT,
+    ExamDesc TEXT,
+    CreatedAt DATETIME,
+    FOREIGN KEY (CourseId) REFERENCES Courses(CourseId) ON DELETE CASCADE,
+    FOREIGN KEY (ChapterId) REFERENCES Chapters(ChapterId) ON DELETE CASCADE
+);
+
+CREATE TABLE Assignments (
+    AssignmentId INT PRIMARY KEY,
+    LessonId INT,
+    AssignmentDuration INT,
+    AssignmentDesc TEXT,
+    CreatedAt DATETIME,
+    FOREIGN KEY (LessonId) REFERENCES Lessons(LessonId) ON DELETE CASCADE
+);
+
+CREATE TABLE Answers (
+    AnswerId INT PRIMARY KEY,
+    AnswerText TEXT
+);
+
+CREATE TABLE Questions (
+    QuestionId INT PRIMARY KEY,
+    QuestionText TEXT,
+    QuestionType VARCHAR(50),
+    QuestionScore DECIMAL(5,2),
+    AnswerId INT,
+    ExamId INT,
+    AssignmentId INT,
+    FOREIGN KEY (AnswerId) REFERENCES Answers(AnswerId) ON DELETE CASCADE,
+    FOREIGN KEY (ExamId) REFERENCES Exams(ExamId) ON DELETE CASCADE,
+    FOREIGN KEY (AssignmentId) REFERENCES Assignments(AssignmentId) ON DELETE CASCADE
+);
+
+CREATE TABLE Payments (
+    PaymentId INT PRIMARY KEY,
+    UserId INT,
+    CourseId INT,
+    PaymentDesc TEXT,
+    PaymentAmount DECIMAL(10,2),
+    PaymentMethod VARCHAR(50),
+    CreatedAt DATETIME,
+    FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE CASCADE,
+    FOREIGN KEY (CourseId) REFERENCES Courses(CourseId) ON DELETE CASCADE
+);
+
+CREATE TABLE UserProgress (
+    UserProgId INT PRIMARY KEY,
+    UserId INT,
+    VideoId INT,
+    IsComplete BIT,
+    CompletedAt DATETIME,
+    FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE CASCADE,
+    FOREIGN KEY (VideoId) REFERENCES Videos(VideoId) ON DELETE CASCADE
+);
+
+CREATE TABLE UserCourseStatus (
+    UserCourseStt INT PRIMARY KEY,
+    UserId INT,
+    CourseId INT,
+    CourseStatus VARCHAR(50),
+    GraduatedAt DATETIME,
+    FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE CASCADE,
+    FOREIGN KEY (CourseId) REFERENCES Courses(CourseId) ON DELETE CASCADE
+);
+
+CREATE TABLE Feedback (
+    FeedbackId INT PRIMARY KEY,
+    UserId INT,
+    CourseId INT,
+    ChapterId INT,
+    LessonId INT,
+    Rating INT,
+    FeedbackComment TEXT,
+    CreatedAt DATETIME,
+    FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE CASCADE,
+    FOREIGN KEY (CourseId) REFERENCES Courses(CourseId) ON DELETE CASCADE,
+    FOREIGN KEY (ChapterId) REFERENCES Chapters(ChapterId) ON DELETE CASCADE,
+    FOREIGN KEY (LessonId) REFERENCES Lessons(LessonId) ON DELETE CASCADE
+);
+
 CREATE TRIGGER CreateAt_Course_Chapter
 ON Chapters
 AFTER INSERT, UPDATE
