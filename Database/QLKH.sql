@@ -4,115 +4,156 @@ USE QLKH
 --- Tạo các bảng
 CREATE TABLE Users (
     UserId INT PRIMARY KEY,
-    UserName VARCHAR(100),
-    UserEmail VARCHAR(100),
-    UserPassword VARCHAR(100),
+    UserName VARCHAR(100) NOT NULL,
+    UserEmail VARCHAR(100) NOT NULL,
+    UserPassword VARCHAR(100) NOT NULL,
     PhoneNumber VARCHAR(20),
-    UserAddress VARCHAR(200)
+    UserAddress VARCHAR(200),
+    CreatedAt DATETIME DEFAULT GETDATE()
+);
+
+CREATE TABLE Admins (
+    UserId INT PRIMARY KEY,
+    Position VARCHAR(100) NOT NULL,
+    Note VARCHAR(1000),
+    FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE CASCADE
+);
+
+CREATE TABLE Teachers (
+    UserId INT PRIMARY KEY,
+    Expertise VARCHAR(200) NOT NULL,
+    Bio VARCHAR(1000),
+    HireDate DATE NOT NULL,
+    BankAccount VARCHAR(200),
+    FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE CASCADE
+);
+
+CREATE TABLE Students (
+    UserId INT PRIMARY KEY,
+    Class VARCHAR(50),
+    EnrollmentDate DATE NOT NULL,
+    EducationLevel VARCHAR(100),
+    FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE CASCADE
 );
 
 CREATE TABLE Courses (
     CourseId INT PRIMARY KEY,
-    CourseTitle VARCHAR(100),
+    CourseTitle VARCHAR(100) NOT NULL,
     CourseDesc TEXT,
-    CoursePrice DECIMAL(10,2),
-    CreatedAt DATETIME
+    CoursePrice DECIMAL(10,2) NOT NULL,
+    TeacherId INT NOT NULL,
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (TeacherId) REFERENCES Teachers(UserId) ON DELETE CASCADE
+);
+
+CREATE TABLE Enrollments (
+    EnrollmentId INT PRIMARY KEY,
+    UserId INT NOT NULL,
+    CourseId INT NOT NULL,
+    EnrollmentStatus VARCHAR(50) NOT NULL,
+    EnrolledAt DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE CASCADE,
+    FOREIGN KEY (CourseId) REFERENCES Courses(CourseId) ON DELETE CASCADE
+);
+
+CREATE TABLE Payments (
+    PaymentId INT PRIMARY KEY,
+    UserId INT NOT NULL,
+    CourseId INT NOT NULL,
+    PaymentDesc TEXT,
+    PaymentAmount DECIMAL(10,2) NOT NULL,
+    PaymentMethod VARCHAR(50) NOT NULL,
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE CASCADE,
+    FOREIGN KEY (CourseId) REFERENCES Courses(CourseId) ON DELETE CASCADE
 );
 
 CREATE TABLE Chapters (
     ChapterId INT PRIMARY KEY,
-    CourseId INT,
-    ChapterTitle VARCHAR(100),
-    ChapterDesc TEXT,
+    CourseId INT NOT NULL,
+    ChapterTitle NVARCHAR(100) NOT NULL,
+    ChapterDescription NVARCHAR(MAX),
     ChapterPosition INT,
-    CreatedAt DATETIME,
+    CreatedAt DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (CourseId) REFERENCES Courses(CourseId) ON DELETE CASCADE
 );
 
 CREATE TABLE Videos (
     VideoId INT PRIMARY KEY,
-    VideoUrl VARCHAR(200),
-    VideoDesc TEXT,
+    VideoUrl NVARCHAR(255) NOT NULL,
+    VideoDescription NVARCHAR(MAX),
     VideoDuration INT,
-    CreatedAt DATETIME
+    CreatedAt DATETIME DEFAULT GETDATE()
 );
 
 CREATE TABLE Lessons (
     LessonId INT PRIMARY KEY,
-    ChapterId INT,
-    VideoId INT,
-    LessonTitle VARCHAR(100),
-    LessonDesc TEXT,
-    CreatedAt DATETIME,
+    ChapterId INT NOT NULL,
+    VideoId INT NOT NULL,
+    LessonTitle NVARCHAR(100) NOT NULL,
+    LessonDescription NVARCHAR(MAX),
+    CreatedAt DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (ChapterId) REFERENCES Chapters(ChapterId) ON DELETE CASCADE,
     FOREIGN KEY (VideoId) REFERENCES Videos(VideoId) ON DELETE CASCADE
 );
 
 CREATE TABLE Documents (
     DocumentId INT PRIMARY KEY,
-    LessonID INT,
-    DocumentUrl VARCHAR(200),
-    DocumentDesc TEXT,
-    CreatedAt DATETIME,
-    FOREIGN KEY (LessonID) REFERENCES Lessons(LessonID) ON DELETE CASCADE
+    LessonId INT NOT NULL,
+    DocumentUrl NVARCHAR(255) NOT NULL,
+    DocumentDescription NVARCHAR(MAX),
+    CreatedAt DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (LessonId) REFERENCES Lessons(LessonId) ON DELETE CASCADE
 );
 
 CREATE TABLE Exams (
     ExamId INT PRIMARY KEY,
-    CourseId INT,
-    ChapterId INT,
-    ExamName VARCHAR(100),
+    CourseId INT NOT NULL,
+    ChapterId INT NOT NULL,
+    ExamName NVARCHAR(100) NOT NULL,
     ExamDuration INT,
-    ExamDesc TEXT,
-    CreatedAt DATETIME,
+    ExamDescription NVARCHAR(MAX),
+    CreatedAt DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (CourseId) REFERENCES Courses(CourseId) ON DELETE CASCADE,
-    FOREIGN KEY (ChapterId) REFERENCES Chapters(ChapterId) ON DELETE CASCADE
+    FOREIGN KEY (ChapterId) REFERENCES Chapters(ChapterId)
 );
 
 CREATE TABLE Assignments (
     AssignmentId INT PRIMARY KEY,
-    LessonId INT,
+    LessonId INT NOT NULL,
     AssignmentDuration INT,
-    AssignmentDesc TEXT,
-    CreatedAt DATETIME,
+    AssignmentDescription NVARCHAR(MAX),
+    CreatedAt DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (LessonId) REFERENCES Lessons(LessonId) ON DELETE CASCADE
 );
 
 CREATE TABLE Answers (
     AnswerId INT PRIMARY KEY,
-    AnswerText TEXT
+    AnswerText NVARCHAR(MAX) NOT NULL,
+    CreatedAt DATETIME DEFAULT GETDATE()
 );
 
 CREATE TABLE Questions (
     QuestionId INT PRIMARY KEY,
-    QuestionText TEXT,
-    QuestionType VARCHAR(50),
+    QuestionText NVARCHAR(MAX) NOT NULL,
+    QuestionType NVARCHAR(50) NOT NULL,
     QuestionScore DECIMAL(5,2),
     AnswerId INT,
     ExamId INT,
     AssignmentId INT,
+    CreatedAt DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (AnswerId) REFERENCES Answers(AnswerId) ON DELETE CASCADE,
     FOREIGN KEY (ExamId) REFERENCES Exams(ExamId) ON DELETE CASCADE,
-    FOREIGN KEY (AssignmentId) REFERENCES Assignments(AssignmentId) ON DELETE CASCADE
-);
-
-CREATE TABLE Payments (
-    PaymentId INT PRIMARY KEY,
-    UserId INT,
-    CourseId INT,
-    PaymentDesc TEXT,
-    PaymentAmount DECIMAL(10,2),
-    PaymentMethod VARCHAR(50),
-    CreatedAt DATETIME,
-    FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE CASCADE,
-    FOREIGN KEY (CourseId) REFERENCES Courses(CourseId) ON DELETE CASCADE
+    FOREIGN KEY (AssignmentId) REFERENCES Assignments(AssignmentId),
+    CHECK ((ExamId IS NOT NULL AND AssignmentId IS NULL) OR (ExamId IS NULL AND AssignmentId IS NOT NULL))
 );
 
 CREATE TABLE UserProgress (
     UserId INT,
     VideoId INT,
-    IsComplete BIT,
+    IsComplete BIT NOT NULL,
     CompletedAt DATETIME,
+    CreatedAt DATETIME DEFAULT GETDATE(),
     PRIMARY KEY (UserId, VideoId),
     FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE CASCADE,
     FOREIGN KEY (VideoId) REFERENCES Videos(VideoId) ON DELETE CASCADE
@@ -121,8 +162,9 @@ CREATE TABLE UserProgress (
 CREATE TABLE UserCourseStatus (
     UserId INT,
     CourseId INT,
-    CourseStatus VARCHAR(50),
+    CourseStatus NVARCHAR(50) NOT NULL,
     GraduatedAt DATETIME,
+    CreatedAt DATETIME DEFAULT GETDATE(),
     PRIMARY KEY (UserId, CourseId),
     FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE CASCADE,
     FOREIGN KEY (CourseId) REFERENCES Courses(CourseId) ON DELETE CASCADE
@@ -130,18 +172,24 @@ CREATE TABLE UserCourseStatus (
 
 CREATE TABLE Feedback (
     FeedbackId INT PRIMARY KEY,
-    UserId INT,
+    UserId INT NOT NULL,
     CourseId INT,
     ChapterId INT,
     LessonId INT,
-    Rating INT,
-    FeedbackComment TEXT,
-    CreatedAt DATETIME,
+    Rating INT NOT NULL,
+    FeedbackComment NVARCHAR(MAX),
+    CreatedAt DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE CASCADE,
-    FOREIGN KEY (CourseId) REFERENCES Courses(CourseId) ON DELETE CASCADE,
-    FOREIGN KEY (ChapterId) REFERENCES Chapters(ChapterId) ON DELETE CASCADE,
-    FOREIGN KEY (LessonId) REFERENCES Lessons(LessonId) ON DELETE CASCADE
+    FOREIGN KEY (CourseId) REFERENCES Courses(CourseId),
+    FOREIGN KEY (ChapterId) REFERENCES Chapters(ChapterId),
+    FOREIGN KEY (LessonId) REFERENCES Lessons(LessonId) ON DELETE CASCADE,
+    CHECK (
+        (CourseId IS NOT NULL AND ChapterId IS NULL AND LessonId IS NULL)
+        OR (ChapterId IS NOT NULL AND LessonId IS NULL)
+        OR (LessonId IS NOT NULL)
+    )
 );
+
 
 CREATE TRIGGER CreateAt_Course_Chapter
 ON Chapters
