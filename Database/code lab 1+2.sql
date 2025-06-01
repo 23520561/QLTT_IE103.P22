@@ -143,11 +143,11 @@ GO
 
 -- Tạo bảng USER_PROGRESS
 CREATE TABLE USER_PROGRESS (
-    user_progress_id INT PRIMARY KEY,
     user_id INT,
     video_id INT,
     is_complete BIT,
     completed_at DATETIME,
+    PRIMARY KEY (user_id, video_id),
     FOREIGN KEY (user_id) REFERENCES USERS(user_id) ON DELETE CASCADE,
     FOREIGN KEY (video_id) REFERENCES VIDEOS(video_id) ON DELETE CASCADE
 );
@@ -155,11 +155,11 @@ GO
 
 -- Tạo bảng USER_COURSE_STATUS
 CREATE TABLE USER_COURSE_STATUS (
-    user_course_status_id INT PRIMARY KEY,
     user_id INT,
     course_id INT,
     course_status NVARCHAR(50),
     graduated_at DATETIME,
+    PRIMARY KEY (user_id, course_id),
     FOREIGN KEY (user_id) REFERENCES USERS(user_id) ON DELETE CASCADE,
     FOREIGN KEY (course_id) REFERENCES COURSES(course_id) ON DELETE CASCADE
 );
