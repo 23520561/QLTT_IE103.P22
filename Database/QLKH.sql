@@ -109,21 +109,21 @@ CREATE TABLE Payments (
 );
 
 CREATE TABLE UserProgress (
-    UserProgId INT PRIMARY KEY,
     UserId INT,
     VideoId INT,
     IsComplete BIT,
     CompletedAt DATETIME,
+    PRIMARY KEY (UserId, VideoId),
     FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE CASCADE,
     FOREIGN KEY (VideoId) REFERENCES Videos(VideoId) ON DELETE CASCADE
 );
 
 CREATE TABLE UserCourseStatus (
-    UserCourseStt INT PRIMARY KEY,
     UserId INT,
     CourseId INT,
     CourseStatus VARCHAR(50),
     GraduatedAt DATETIME,
+    PRIMARY KEY (UserId, CourseId),
     FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE CASCADE,
     FOREIGN KEY (CourseId) REFERENCES Courses(CourseId) ON DELETE CASCADE
 );
