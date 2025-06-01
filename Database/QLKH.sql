@@ -4,156 +4,117 @@ USE QLKH
 --- Tạo các bảng
 CREATE TABLE Users (
     UserId INT PRIMARY KEY,
-    UserName VARCHAR(100) NOT NULL,
-    UserEmail VARCHAR(100) NOT NULL,
-    UserPassword VARCHAR(100) NOT NULL,
+    UserName VARCHAR(100),
+    UserEmail VARCHAR(100),
+    UserPassword VARCHAR(100),
     PhoneNumber VARCHAR(20),
-    UserAddress VARCHAR(200),
-    CreatedAt DATETIME DEFAULT GETDATE()
-);
-
-CREATE TABLE Admins (
-    UserId INT PRIMARY KEY,
-    Position VARCHAR(100) NOT NULL,
-    Note VARCHAR(1000),
-    FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE CASCADE
-);
-
-CREATE TABLE Teachers (
-    UserId INT PRIMARY KEY,
-    Expertise VARCHAR(200) NOT NULL,
-    Bio VARCHAR(1000),
-    HireDate DATE NOT NULL,
-    BankAccount VARCHAR(200),
-    FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE CASCADE
-);
-
-CREATE TABLE Students (
-    UserId INT PRIMARY KEY,
-    Class VARCHAR(50),
-    EnrollmentDate DATE NOT NULL,
-    EducationLevel VARCHAR(100),
-    FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE CASCADE
+    UserAddress VARCHAR(200)
 );
 
 CREATE TABLE Courses (
     CourseId INT PRIMARY KEY,
-    CourseTitle VARCHAR(100) NOT NULL,
+    CourseTitle VARCHAR(100),
     CourseDesc TEXT,
-    CoursePrice DECIMAL(10,2) NOT NULL,
-    TeacherId INT NOT NULL,
-    CreatedAt DATETIME DEFAULT GETDATE(),
-    FOREIGN KEY (TeacherId) REFERENCES Teachers(UserId) ON DELETE CASCADE
-);
-
-CREATE TABLE Enrollments (
-    EnrollmentId INT PRIMARY KEY,
-    UserId INT NOT NULL,
-    CourseId INT NOT NULL,
-    EnrollmentStatus VARCHAR(50) NOT NULL,
-    EnrolledAt DATETIME DEFAULT GETDATE(),
-    FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE CASCADE,
-    FOREIGN KEY (CourseId) REFERENCES Courses(CourseId) ON DELETE CASCADE
-);
-
-CREATE TABLE Payments (
-    PaymentId INT PRIMARY KEY,
-    UserId INT NOT NULL,
-    CourseId INT NOT NULL,
-    PaymentDesc TEXT,
-    PaymentAmount DECIMAL(10,2) NOT NULL,
-    PaymentMethod VARCHAR(50) NOT NULL,
-    CreatedAt DATETIME DEFAULT GETDATE(),
-    FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE CASCADE,
-    FOREIGN KEY (CourseId) REFERENCES Courses(CourseId) ON DELETE CASCADE
+    CoursePrice DECIMAL(10,2),
+    Author INT,
+    CreatedAt DATETIME,
+    FOREIGN KEY (Author) REFERENCES Users(UserId) ON DELETE CASCADE
 );
 
 CREATE TABLE Chapters (
     ChapterId INT PRIMARY KEY,
-    CourseId INT NOT NULL,
-    ChapterTitle NVARCHAR(100) NOT NULL,
-    ChapterDescription NVARCHAR(MAX),
+    CourseId INT,
+    ChapterTitle VARCHAR(100),
+    ChapterDesc TEXT,
     ChapterPosition INT,
-    CreatedAt DATETIME DEFAULT GETDATE(),
+    CreatedAt DATETIME,
     FOREIGN KEY (CourseId) REFERENCES Courses(CourseId) ON DELETE CASCADE
 );
 
 CREATE TABLE Videos (
     VideoId INT PRIMARY KEY,
-    VideoUrl NVARCHAR(255) NOT NULL,
-    VideoDescription NVARCHAR(MAX),
+    VideoUrl VARCHAR(200),
+    VideoDesc TEXT,
     VideoDuration INT,
-    CreatedAt DATETIME DEFAULT GETDATE()
+    CreatedAt DATETIME
 );
 
 CREATE TABLE Lessons (
     LessonId INT PRIMARY KEY,
-    ChapterId INT NOT NULL,
-    VideoId INT NOT NULL,
-    LessonTitle NVARCHAR(100) NOT NULL,
-    LessonDescription NVARCHAR(MAX),
-    CreatedAt DATETIME DEFAULT GETDATE(),
+    ChapterId INT,
+    VideoId INT,
+    LessonTitle VARCHAR(100),
+    LessonDesc TEXT,
+    CreatedAt DATETIME,
     FOREIGN KEY (ChapterId) REFERENCES Chapters(ChapterId) ON DELETE CASCADE,
     FOREIGN KEY (VideoId) REFERENCES Videos(VideoId) ON DELETE CASCADE
 );
 
 CREATE TABLE Documents (
     DocumentId INT PRIMARY KEY,
-    LessonId INT NOT NULL,
-    DocumentUrl NVARCHAR(255) NOT NULL,
-    DocumentDescription NVARCHAR(MAX),
-    CreatedAt DATETIME DEFAULT GETDATE(),
-    FOREIGN KEY (LessonId) REFERENCES Lessons(LessonId) ON DELETE CASCADE
+    LessonID INT,
+    DocumentUrl VARCHAR(200),
+    DocumentDesc TEXT,
+    CreatedAt DATETIME,
+    FOREIGN KEY (LessonID) REFERENCES Lessons(LessonID) ON DELETE CASCADE
 );
 
 CREATE TABLE Exams (
     ExamId INT PRIMARY KEY,
-    CourseId INT NOT NULL,
-    ChapterId INT NOT NULL,
-    ExamName NVARCHAR(100) NOT NULL,
+    CourseId INT,
+    ChapterId INT,
+    ExamName VARCHAR(100),
     ExamDuration INT,
-    ExamDescription NVARCHAR(MAX),
-    CreatedAt DATETIME DEFAULT GETDATE(),
+    ExamDesc TEXT,
+    CreatedAt DATETIME,
     FOREIGN KEY (CourseId) REFERENCES Courses(CourseId) ON DELETE CASCADE,
-    FOREIGN KEY (ChapterId) REFERENCES Chapters(ChapterId)
+    FOREIGN KEY (ChapterId) REFERENCES Chapters(ChapterId) ON DELETE CASCADE
 );
 
 CREATE TABLE Assignments (
     AssignmentId INT PRIMARY KEY,
-    LessonId INT NOT NULL,
+    LessonId INT,
     AssignmentDuration INT,
-    AssignmentDescription NVARCHAR(MAX),
-    CreatedAt DATETIME DEFAULT GETDATE(),
+    AssignmentDesc TEXT,
+    CreatedAt DATETIME,
     FOREIGN KEY (LessonId) REFERENCES Lessons(LessonId) ON DELETE CASCADE
 );
 
 CREATE TABLE Answers (
     AnswerId INT PRIMARY KEY,
-    AnswerText NVARCHAR(MAX) NOT NULL,
-    CreatedAt DATETIME DEFAULT GETDATE()
+    AnswerText TEXT
 );
 
 CREATE TABLE Questions (
     QuestionId INT PRIMARY KEY,
-    QuestionText NVARCHAR(MAX) NOT NULL,
-    QuestionType NVARCHAR(50) NOT NULL,
+    QuestionText TEXT,
+    QuestionType VARCHAR(50),
     QuestionScore DECIMAL(5,2),
     AnswerId INT,
     ExamId INT,
     AssignmentId INT,
-    CreatedAt DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (AnswerId) REFERENCES Answers(AnswerId) ON DELETE CASCADE,
     FOREIGN KEY (ExamId) REFERENCES Exams(ExamId) ON DELETE CASCADE,
-    FOREIGN KEY (AssignmentId) REFERENCES Assignments(AssignmentId),
-    CHECK ((ExamId IS NOT NULL AND AssignmentId IS NULL) OR (ExamId IS NULL AND AssignmentId IS NOT NULL))
+    FOREIGN KEY (AssignmentId) REFERENCES Assignments(AssignmentId) ON DELETE CASCADE
+);
+
+CREATE TABLE Payments (
+    PaymentId INT PRIMARY KEY,
+    UserId INT,
+    CourseId INT,
+    PaymentDesc TEXT,
+    PaymentAmount DECIMAL(10,2),
+    PaymentMethod VARCHAR(50),
+    CreatedAt DATETIME,
+    FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE CASCADE,
+    FOREIGN KEY (CourseId) REFERENCES Courses(CourseId) ON DELETE CASCADE
 );
 
 CREATE TABLE UserProgress (
     UserId INT,
     VideoId INT,
-    IsComplete BIT NOT NULL,
+    IsComplete BIT,
     CompletedAt DATETIME,
-    CreatedAt DATETIME DEFAULT GETDATE(),
     PRIMARY KEY (UserId, VideoId),
     FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE CASCADE,
     FOREIGN KEY (VideoId) REFERENCES Videos(VideoId) ON DELETE CASCADE
@@ -162,9 +123,8 @@ CREATE TABLE UserProgress (
 CREATE TABLE UserCourseStatus (
     UserId INT,
     CourseId INT,
-    CourseStatus NVARCHAR(50) NOT NULL,
+    CourseStatus VARCHAR(50),
     GraduatedAt DATETIME,
-    CreatedAt DATETIME DEFAULT GETDATE(),
     PRIMARY KEY (UserId, CourseId),
     FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE CASCADE,
     FOREIGN KEY (CourseId) REFERENCES Courses(CourseId) ON DELETE CASCADE
@@ -172,24 +132,18 @@ CREATE TABLE UserCourseStatus (
 
 CREATE TABLE Feedback (
     FeedbackId INT PRIMARY KEY,
-    UserId INT NOT NULL,
+    UserId INT,
     CourseId INT,
     ChapterId INT,
     LessonId INT,
-    Rating INT NOT NULL,
-    FeedbackComment NVARCHAR(MAX),
-    CreatedAt DATETIME DEFAULT GETDATE(),
+    Rating INT,
+    FeedbackComment TEXT,
+    CreatedAt DATETIME,
     FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE CASCADE,
-    FOREIGN KEY (CourseId) REFERENCES Courses(CourseId),
-    FOREIGN KEY (ChapterId) REFERENCES Chapters(ChapterId),
-    FOREIGN KEY (LessonId) REFERENCES Lessons(LessonId) ON DELETE CASCADE,
-    CHECK (
-        (CourseId IS NOT NULL AND ChapterId IS NULL AND LessonId IS NULL)
-        OR (ChapterId IS NOT NULL AND LessonId IS NULL)
-        OR (LessonId IS NOT NULL)
-    )
+    FOREIGN KEY (CourseId) REFERENCES Courses(CourseId) ON DELETE CASCADE,
+    FOREIGN KEY (ChapterId) REFERENCES Chapters(ChapterId) ON DELETE CASCADE,
+    FOREIGN KEY (LessonId) REFERENCES Lessons(LessonId) ON DELETE CASCADE
 );
-
 
 CREATE TRIGGER CreateAt_Course_Chapter
 ON Chapters
@@ -305,6 +259,79 @@ BEGIN
         RAISERROR('Chỉ hoàn thành video khi đã xem 100% video', 16, 1);
         ROLLBACK TRANSACTION;
     END
+END;
+
+CREATE TRIGGER trg_UpdateCourseStatus_WhenAllVideosCompleted
+ON UserProgress
+AFTER INSERT, UPDATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @UserId INT, @VideoId INT;
+
+    SELECT @UserId = UserId, @VideoId = VideoId
+    FROM inserted;
+
+    DECLARE @CourseId INT;
+    SELECT TOP 1 @CourseId = c.CourseId
+    FROM Videos v
+    JOIN Lessons l ON v.VideoId = l.VideoId
+    JOIN Chapters ch ON l.Chapter_Id = ch.Chapter_Id
+    JOIN Courses c ON ch.CourseId = c.CourseId
+    WHERE v.VideoId = @VideoId;
+
+    IF NOT EXISTS (
+        SELECT 1
+        FROM Videos v
+        JOIN Lessons l ON v.VideoId = l.VideoId
+        JOIN Chapters ch ON l.Chapter_Id = ch.Chapter_Id
+        WHERE ch.CourseId = @CourseId
+        AND NOT EXISTS (
+            SELECT 1
+            FROM UserProgress up
+            WHERE up.VideoId = v.VideoId AND up.UserId = @UserId AND up.IsComplete = 1
+        )
+    )
+    BEGIN
+        UPDATE UserCourseStatus
+        SET CourseStatus = 'Completed',
+            GraduatedAt = GETDATE()
+        WHERE UserId = @UserId AND CourseId = @CourseId;
+    END
+END;
+
+CREATE TRIGGER trg_ResetAndInitializeUserProgress
+ON Payments
+AFTER INSERT
+AS
+BEGIN
+   
+    DELETE UP
+    FROM UserProgress UP
+    JOIN inserted i ON UP.UserId = i.UserId
+    JOIN Chapters c ON c.CourseId = i.CourseId
+    JOIN Lessons l ON l.ChapterId = c.ChapterId
+    WHERE l.VideoId = UP.VideoId;
+
+    DELETE UCS
+    FROM UserCourseStatus UCS
+    JOIN inserted i ON UCS.UserId = i.UserId AND UCS.CourseId = i.CourseId;
+
+    INSERT INTO UserProgress (UserId, VideoId, IsComplete, CompletedAt)
+    SELECT
+        i.UserId,
+        v.VideoId,
+        0,        
+        NULL      
+    FROM inserted i
+    JOIN Chapters c ON c.CourseId = i.CourseId
+    JOIN Lessons l ON l.ChapterId = c.ChapterId
+    JOIN Videos v ON v.VideoId = l.VideoId;
+
+    INSERT INTO UserCourseStatus (UserId, CourseId, CourseStatus, GraduatedAt)
+    SELECT i.UserId, i.CourseId, 'in_progress', NULL
+    FROM inserted i;
 END;
 
 CREATE PROCEDURE Update_Create_User
