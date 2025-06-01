@@ -1,26 +1,41 @@
 use QLKH5
--- Tạo bảng ROLES
-CREATE TABLE ROLES (
-    role_id INT PRIMARY KEY,
-    role_name NVARCHAR(50) NOT NULL UNIQUE
-);
-
--- Chèn dữ liệu vào ROLES
-INSERT INTO ROLES (role_id, role_name) VALUES
-(1, N'Admin'),
-(2, N'Teacher'),
-(3, N'Student');
-
+    
 -- Tạo bảng USERS
 CREATE TABLE USERS (
-    role_id INT,
     user_id INT PRIMARY KEY,
     user_name NVARCHAR(100) NOT NULL,
     user_email NVARCHAR(100) NOT NULL UNIQUE,
     user_password_hash NVARCHAR(100) NOT NULL,
     phone_number NVARCHAR(20),
     user_address NVARCHAR(200),
-    FOREIGN KEY (role_id) REFERENCES ROLES(role_id)
+    created_at DATETIME DEFAULT GETDATE()
+);
+
+-- Bảng thông tin quản trị viên
+CREATE TABLE ADMINS (
+    user_id INT PRIMARY KEY,
+    position NVARCHAR(100) NOT NULL,
+    note NVARCHAR(1000),
+    FOREIGN KEY (user_id) REFERENCES USERS(user_id) ON DELETE CASCADE
+);
+
+-- Bảng thông tin giáo viên
+CREATE TABLE TEACHERS (
+    user_id INT PRIMARY KEY,
+    expertise NVARCHAR(200) NOT NULL,
+    bio NVARCHAR(1000),
+    hire_date DATE NOT NULL,
+    bank_account NVARCHAR(200),
+    FOREIGN KEY (user_id) REFERENCES USERS(user_id) ON DELETE CASCADE
+);
+
+-- Bảng thông tin học sinh
+CREATE TABLE STUDENTS (
+    user_id INT PRIMARY KEY,
+    class NVARCHAR(50),
+    enrollment_date DATE NOT NULL,
+    education_level NVARCHAR(100),
+    FOREIGN KEY (user_id) REFERENCES USERS(user_id) ON DELETE CASCADE
 );
 
 -- Tạo bảng COURSES
@@ -28,15 +43,27 @@ CREATE TABLE COURSES (
     course_id INT PRIMARY KEY,
     course_title NVARCHAR(100) NOT NULL,
     course_description NVARCHAR(MAX),
-    course_price DECIMAL(10,2),
-    created_at DATETIME DEFAULT GETDATE()
+    course_price DECIMAL(10,2) NOT NULL,
+    teacher_id INT NOT NULL,
+    created_at DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (teacher_id) REFERENCES TEACHERS(user_id) ON DELETE CASCADE
 );
-GO
+
+-- Bảng đăng ký khóa học
+CREATE TABLE ENROLLMENTS (
+    enrollment_id INT PRIMARY KEY,
+    user_id INT NOT NULL,
+    course_id INT NOT NULL,
+    enrollment_status NVARCHAR(50) NOT NULL,
+    enrolled_at DATETIME DEFAULT GETDATE(),
+    FOREIGN KEY (user_id) REFERENCES USERS(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (course_id) REFERENCES COURSES(course_id) ON DELETE CASCADE
+);
 
 -- Tạo bảng CHAPTERS
 CREATE TABLE CHAPTERS (
     chapter_id INT PRIMARY KEY,
-    course_id INT,
+    course_id INT NOT NULL,
     chapter_title NVARCHAR(100) NOT NULL,
     chapter_description NVARCHAR(MAX),
     chapter_position INT,
@@ -168,30 +195,25 @@ GO
 -- Tạo bảng FEEDBACK
 CREATE TABLE FEEDBACK (
     feedback_id INT PRIMARY KEY,
-    user_id INT,
+    user_id INT NOT NULL,
     course_id INT,
     chapter_id INT,
     lesson_id INT,
-    rating INT,
+    rating INT NOT NULL,
     feedback_comment NVARCHAR(MAX),
     created_at DATETIME DEFAULT GETDATE(),
     FOREIGN KEY (user_id) REFERENCES USERS(user_id) ON DELETE CASCADE,
-    FOREIGN KEY (course_id) REFERENCES COURSES(course_id) ON DELETE NO ACTION,
-    FOREIGN KEY (chapter_id) REFERENCES CHAPTERS(chapter_id) ON DELETE NO ACTION,
-    FOREIGN KEY (lesson_id) REFERENCES LESSONS(lesson_id) ON DELETE CASCADE
+    FOREIGN KEY (course_id) REFERENCES COURSES(course_id),
+    FOREIGN KEY (chapter_id) REFERENCES CHAPTERS(chapter_id),
+    FOREIGN KEY (lesson_id) REFERENCES LESSONS(lesson_id) ON DELETE CASCADE,
+    CHECK (
+        (course_id IS NOT NULL AND chapter_id IS NULL AND lesson_id IS NULL)
+        OR (chapter_id IS NOT NULL AND lesson_id IS NULL)
+        OR (lesson_id IS NOT NULL)
+    )
 );
 GO
-
--- Tạo bảng TEACHER_COURSES
-CREATE TABLE TEACHER_COURSES (
-    teacher_id INT,
-    course_id INT,
-    PRIMARY KEY (teacher_id, course_id),
-    FOREIGN KEY (teacher_id) REFERENCES USERS(user_id),
-    FOREIGN KEY (course_id) REFERENCES COURSES(course_id)
-);
-GO
-
+    
 -- Tạo các trigger
 CREATE TRIGGER trg_create_at_course_chapter
 ON CHAPTERS
