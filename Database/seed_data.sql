@@ -227,34 +227,34 @@ GO
 
 -- Chèn dữ liệu vào bảng USER_PROGRESS
 -- Đảm bảo is_complete và completed_at hợp lệ (do trigger trg_is_complete_user_progress)
-INSERT INTO USER_PROGRESS (user_progress_id, user_id, video_id, is_complete, completed_at) VALUES
-(1, 11, 1, 1, '2024-01-11 10:00:00'),
-(2, 11, 2, 1, '2024-01-12 10:00:00'),
-(3, 11, 3, 0, NULL),
-(4, 11, 4, 0, NULL),
-(5, 11, 5, 0, NULL),
-(6, 12, 6, 1, '2024-02-11 10:00:00'),
-(7, 12, 7, 1, '2024-02-12 10:00:00'),
-(8, 12, 8, 0, NULL),
-(9, 12, 9, 0, NULL),
-(10, 12, 10, 0, NULL),
-(11, 30, 11, 1, '2024-06-11 10:00:00'),
-(12, 30, 12, 1, '2024-06-12 10:00:00'),
-(13, 30, 13, 0, NULL),
-(14, 30, 14, 0, NULL),
-(15, 30, 15, 0, NULL),
-(16, 13, 1, 1, '2024-01-13 10:00:00'),
-(17, 14, 6, 1, '2024-02-13 10:00:00');
+INSERT INTO USER_PROGRESS (user_id, video_id, is_complete, completed_at) VALUES
+(11, 1, 1, '2024-01-11 10:00:00'),
+(11, 2, 1, '2024-01-12 10:00:00'),
+(11, 3, 0, NULL),
+(11, 4, 0, NULL),
+(11, 5, 0, NULL),
+(12, 6, 1, '2024-02-11 10:00:00'),
+(12, 7, 1, '2024-02-12 10:00:00'),
+(12, 8, 0, NULL),
+(12, 9, 0, NULL),
+(12, 10, 0, NULL),
+(30, 11, 1, '2024-06-11 10:00:00'),
+(30, 12, 1, '2024-06-12 10:00:00'),
+(30, 13, 0, NULL),
+(30, 14, 0, NULL),
+(30, 15, 0, NULL),
+(13, 1, 1, '2024-01-13 10:00:00'),
+(14, 6, 1, '2024-02-13 10:00:00');
 GO
 
 -- Chèn dữ liệu vào bảng USER_COURSE_STATUS
 -- Đảm bảo user_course_status_id khớp với PAYMENTS (do stored procedure update_create_payment_course_status)
-INSERT INTO USER_COURSE_STATUS (user_course_status_id, user_id, course_id, course_status, graduated_at) VALUES
-(1, 11, 1, N'Đang Học', NULL),
-(2, 12, 2, N'Chưa Bắt Đầu', NULL),
-(3, 30, 3, N'Đang Học', NULL),
-(4, 13, 1, N'Đang Học', NULL),
-(5, 14, 2, N'Chưa Bắt Đầu', NULL);
+INSERT INTO USER_COURSE_STATUS (user_id, course_id, course_status, graduated_at) VALUES
+(11, 1, N'Đang Học', NULL),
+(12, 2, N'Chưa Bắt Đầu', NULL),
+(30, 3, N'Đang Học', NULL),
+(13, 1, N'Đang Học', NULL),
+(14, 2, N'Chưa Bắt Đầu', NULL);
 GO
 
 -- Chèn dữ liệu vào bảng FEEDBACK
