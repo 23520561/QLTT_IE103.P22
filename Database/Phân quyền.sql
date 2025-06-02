@@ -1,261 +1,159 @@
-﻿-- Phân quyền
-CREATE ROLE Admin;
-CREATE ROLE Teacher;
-CREATE ROLE Student;
+
+
+-- Tạo logins (tài khoản đăng nhập vào SQL Server)
+CREATE LOGIN admin_user WITH PASSWORD = 'AdminPass123!';
+CREATE LOGIN dev_user WITH PASSWORD = 'DevPass123!';
+CREATE LOGIN analyst_user WITH PASSWORD = 'AnalystPass123!';
 GO
 
-DECLARE @tables TABLE (name NVARCHAR(50))
-INSERT INTO @tables VALUES 
-('USERS'), ('COURSES'), ('CHAPTERS'), ('VIDEOS'),
-('LESSONS'), ('DOCUMENTS'), ('EXAMS'), ('ASSIGNMENTS'),
-('ANSWERS'), ('QUESTIONS'), ('PAYMENTS'), ('USER_PROGRESS'),
-('USER_COURSE_STATUS'), ('FEEDBACK'), ('TEACHER_COURSES');
-
-DECLARE @sql NVARCHAR(MAX);
-DECLARE @table NVARCHAR(50);
-
-DECLARE table_cursor CURSOR FOR SELECT name FROM @tables;
-OPEN table_cursor;
-FETCH NEXT FROM table_cursor INTO @table;
-
-WHILE @@FETCH_STATUS = 0
-BEGIN
-    SET @sql = '
-        GRANT SELECT, INSERT, UPDATE, DELETE ON dbo.' + QUOTENAME(@table) + ' TO Admin;';
-    EXEC sp_executesql @sql;
-    FETCH NEXT FROM table_cursor INTO @table;
-END
-
-CLOSE table_cursor;
-DEALLOCATE table_cursor;
+-- Tạo users trong cơ sở dữ liệu, ánh xạ với logins
+CREATE USER nguyendongochieu FOR LOGIN admin_user;
+CREATE USER voducanhhuy FOR LOGIN dev_user;
+CREATE USER lenamhung FOR LOGIN analyst_user;
 GO
 
-DENY SELECT ON dbo.COURSES TO Teacher;
-DENY SELECT ON dbo.VIDEOS TO Teacher;
-DENY SELECT ON dbo.LESSONS TO Teacher;
-DENY SELECT ON dbo.ASSIGNMENTS TO Teacher;
-DENY SELECT ON dbo.EXAMS TO Teacher;
-DENY SELECT ON dbo.QUESTIONS TO Teacher;
-DENY SELECT ON dbo.CHAPTERS TO Teacher;
-DENY SELECT ON dbo.DOCUMENTS TO Teacher;
+USE course_management_db;
 GO
 
-CREATE VIEW vw_teacher_courses AS
-SELECT c.*
-FROM COURSES c
-JOIN TEACHER_COURSES tc ON c.course_id = tc.course_id
-JOIN USERS u ON tc.teacher_id = u.user_id
-WHERE u.user_name = SYSTEM_USER;
-GO
-GRANT SELECT, INSERT, UPDATE, DELETE ON vw_teacher_courses TO Teacher;
+-- Tạo vai trò
+CREATE ROLE admin_role;
+CREATE ROLE dev_role;
+CREATE ROLE analyst_role;
 GO
 
-CREATE VIEW vw_teacher_chapters AS
-SELECT ch.*
-FROM CHAPTERS ch
-JOIN COURSES c ON ch.course_id = c.course_id
-JOIN TEACHER_COURSES tc ON c.course_id = tc.course_id
-JOIN USERS u ON tc.teacher_id = u.user_id
-WHERE u.user_name = SYSTEM_USER;
-GO
-GRANT SELECT, INSERT, UPDATE, DELETE ON vw_teacher_chapters TO Teacher;
+-- Gán quyền CONTROL (toàn quyền) trên toàn bộ cơ sở dữ liệu cho admin_role
+GRANT CONTROL ON DATABASE::QLKH TO admin_role;
+
+-- Gán vai trò admin_role cho người dùng Nguyen Do Ngoc Hieu
+ALTER ROLE admin_role ADD MEMBER nguyendongochieu;
 GO
 
-CREATE VIEW vw_teacher_lessons AS
-SELECT l.*
-FROM LESSONS l
-JOIN CHAPTERS ch ON l.chapter_id = ch.chapter_id
-JOIN COURSES c ON ch.course_id = c.course_id
-JOIN TEACHER_COURSES tc ON c.course_id = tc.course_id
-JOIN USERS u ON tc.teacher_id = u.user_id
-WHERE u.user_name = SYSTEM_USER;
-GO
-GRANT SELECT, INSERT, UPDATE, DELETE ON vw_teacher_lessons TO Teacher;
+-- Gán quyền cho dev_role
+GRANT SELECT, INSERT, UPDATE ON Users TO dev_role;
+GRANT SELECT, INSERT, UPDATE ON Courses TO dev_role;
+GRANT SELECT, INSERT, UPDATE ON Chapters TO dev_role;
+GRANT SELECT, INSERT, UPDATE ON Videos TO dev_role;
+GRANT SELECT, INSERT, UPDATE ON Lessons TO dev_role;
+GRANT SELECT, INSERT, UPDATE ON Documents TO dev_role;
+GRANT SELECT, INSERT, UPDATE ON Exams TO dev_role;
+GRANT SELECT, INSERT, UPDATE ON Assignments TO dev_role;
+GRANT SELECT, INSERT, UPDATE ON Questions TO dev_role;
+GRANT SELECT, INSERT, UPDATE ON Answers TO dev_role;
+GRANT SELECT, INSERT, UPDATE ON Feedback TO dev_role;
+GRANT SELECT, INSERT, UPDATE ON UserProgress TO dev_role;
+-- Hạn chế quyền trên bảng nhạy cảm
+GRANT SELECT ON Payments TO dev_role;
+GRANT SELECT ON UserCourseStatus TO dev_role;
+-- Rõ ràng từ chối quyền DELETE và ALTER để bảo vệ dữ liệu và cấu trúc
+DENY DELETE, ALTER ON DATABASE::QLKH TO dev_role;
+
+-- Gán vai trò dev_role cho người dùng Vo Duc Anh Huy
+ALTER ROLE dev_role ADD MEMBER voducanhhuy;
 GO
 
-CREATE VIEW vw_teacher_videos AS
-SELECT v.*
-FROM VIDEOS v
-JOIN LESSONS l ON v.video_id = l.video_id
-JOIN CHAPTERS ch ON l.chapter_id = ch.chapter_id
-JOIN COURSES c ON ch.course_id = c.course_id
-JOIN TEACHER_COURSES tc ON c.course_id = tc.course_id
-JOIN USERS u ON tc.teacher_id = u.user_id
-WHERE u.user_name = SYSTEM_USER;
-GO
-GRANT SELECT, INSERT, UPDATE, DELETE ON vw_teacher_videos TO Teacher;
+-- Gán quyền cho analyst_role
+CREATE VIEW UsersView
+AS
+SELECT UserId, UserName
+FROM Users;
 GO
 
-CREATE VIEW vw_teacher_assignments AS
-SELECT a.*
-FROM ASSIGNMENTS a
-JOIN LESSONS l ON a.lesson_id = l.lesson_id
-JOIN CHAPTERS ch ON l.chapter_id = ch.chapter_id
-JOIN COURSES c ON ch.course_id = c.course_id
-JOIN TEACHER_COURSES tc ON c.course_id = tc.course_id
-JOIN USERS u ON tc.teacher_id = u.user_id
-WHERE u.user_name = SYSTEM_USER;
-GO
-GRANT SELECT, INSERT, UPDATE, DELETE ON vw_teacher_assignments TO Teacher;
+CREATE VIEW CoursesView
+AS
+SELECT CourseId, CourseTitle, CourseDesc, CoursePrice, CreatedAt
+FROM Courses;
 GO
 
-CREATE VIEW vw_teacher_exams AS
-SELECT e.*
-FROM EXAMS e
-JOIN COURSES c ON e.course_id = c.course_id
-JOIN TEACHER_COURSES tc ON c.course_id = tc.course_id
-JOIN USERS u ON tc.teacher_id = u.user_id
-WHERE u.user_name = SYSTEM_USER;
-GO
-GRANT SELECT, INSERT, UPDATE, DELETE ON vw_teacher_exams TO Teacher;
+CREATE VIEW ChaptersView
+AS
+SELECT ChapterId, CourseId, ChapterTitle, ChapterDesc, ChapterPosition, CreatedAt
+FROM Chapters;
 GO
 
-CREATE VIEW vw_teacher_questions AS
-SELECT q.*
-FROM QUESTIONS q
-JOIN EXAMS e ON q.exam_id = e.exam_id
-JOIN COURSES c ON e.course_id = c.course_id
-JOIN TEACHER_COURSES tc ON c.course_id = tc.course_id
-JOIN USERS u ON tc.teacher_id = u.user_id
-WHERE u.user_name = SYSTEM_USER;
-GO
-GRANT SELECT, INSERT, UPDATE, DELETE ON vw_teacher_questions TO Teacher;
+CREATE VIEW LessonsView
+AS
+SELECT LessonId, ChapterId, VideoId, LessonTitle, LessonDesc, CreatedAt
+FROM Lessons;
 GO
 
-CREATE VIEW vw_teacher_documents AS
-SELECT d.*
-FROM DOCUMENTS d
-JOIN LESSONS l ON d.lesson_id = l.lesson_id
-JOIN CHAPTERS ch ON l.chapter_id = ch.chapter_id
-JOIN COURSES c ON ch.course_id = c.course_id
-JOIN TEACHER_COURSES tc ON c.course_id = tc.course_id
-JOIN USERS u ON tc.teacher_id = u.user_id
-WHERE u.user_name = SYSTEM_USER;
-GO
-GRANT SELECT, INSERT, UPDATE, DELETE ON vw_teacher_documents TO Teacher;
+CREATE VIEW VideosView
+AS
+SELECT VideoId, VideoUrl, VideoDesc, VideoDuration, CreatedAt
+FROM Videos;
 GO
 
-DENY SELECT ON dbo.COURSES TO Student;
-DENY SELECT ON dbo.CHAPTERS TO Student;
-DENY SELECT ON dbo.VIDEOS TO Student;
-DENY SELECT ON dbo.LESSONS TO Student;
-DENY SELECT ON dbo.ASSIGNMENTS TO Student;
-DENY SELECT ON dbo.DOCUMENTS TO Student;
-DENY SELECT ON dbo.EXAMS TO Student;
-DENY SELECT ON dbo.QUESTIONS TO Student;
-DENY SELECT ON dbo.USER_PROGRESS TO Student;
-DENY SELECT ON dbo.FEEDBACK TO Student;
+CREATE VIEW ExamsView
+AS
+SELECT ExamId, CourseId, ChapterId, ExamName, ExamDuration, ExamDesc, CreatedAt
+FROM Exams;
 GO
 
-CREATE VIEW vw_student_courses AS
-SELECT c.*
-FROM COURSES c
-JOIN PAYMENTS p ON p.course_id = c.course_id
-JOIN USERS u ON p.user_id = u.user_id
-WHERE u.user_name = SYSTEM_USER;
-GO
-GRANT SELECT ON vw_student_courses TO Student;
+CREATE VIEW AssignmentsView
+AS
+SELECT AssignmentId, LessonId, AssignmentDuration, AssignmentDesc, CreatedAt
+FROM Assignments;
 GO
 
-CREATE VIEW vw_student_chapters AS
-SELECT ch.*
-FROM CHAPTERS ch
-JOIN COURSES c ON ch.course_id = c.course_id
-JOIN PAYMENTS p ON p.course_id = c.course_id
-JOIN USERS u ON p.user_id = u.user_id
-WHERE u.user_name = SYSTEM_USER;
-GO
-GRANT SELECT ON vw_student_chapters TO Student;
+CREATE VIEW QuestionsView
+AS
+SELECT QuestionId, QuestionText, QuestionType, QuestionScore, ExamId, AssignmentId
+FROM Questions;
 GO
 
-CREATE VIEW vw_student_lessons AS
-SELECT l.*
-FROM LESSONS l
-JOIN CHAPTERS ch ON l.chapter_id = ch.chapter_id
-JOIN COURSES c ON ch.course_id = c.course_id
-JOIN PAYMENTS p ON p.course_id = c.course_id
-JOIN USERS u ON p.user_id = u.user_id
-WHERE u.user_name = SYSTEM_USER;
-GO
-GRANT SELECT ON vw_student_lessons TO Student;
+CREATE VIEW FeedbackView
+AS
+SELECT FeedbackId, UserId, CourseId, ChapterId, LessonId, Rating, FeedbackComment, CreatedAt
+FROM Feedback;
 GO
 
-CREATE VIEW vw_student_videos AS
-SELECT v.*
-FROM VIDEOS v
-JOIN LESSONS l ON v.video_id = l.video_id
-JOIN CHAPTERS ch ON l.chapter_id = ch.chapter_id
-JOIN COURSES c ON ch.course_id = c.course_id
-JOIN PAYMENTS p ON p.course_id = c.course_id
-JOIN USERS u ON p.user_id = u.user_id
-WHERE u.user_name = SYSTEM_USER;
-GO
-GRANT SELECT ON vw_student_videos TO Student;
+CREATE VIEW UserProgressView
+AS
+SELECT UserId, VideoId, IsComplete, CompletedAt
+FROM UserProgress;
 GO
 
-CREATE VIEW vw_student_assignments AS
-SELECT a.*
-FROM ASSIGNMENTS a
-JOIN LESSONS l ON a.lesson_id = l.lesson_id
-JOIN CHAPTERS ch ON l.chapter_id = ch.chapter_id
-JOIN COURSES c ON ch.course_id = c.course_id
-JOIN PAYMENTS p ON p.course_id = c.course_id
-JOIN USERS u ON p.user_id = u.user_id
-WHERE u.user_name = SYSTEM_USER;
-GO
-GRANT SELECT ON vw_student_assignments TO Student;
+CREATE VIEW UserCourseStatusView
+AS
+SELECT UserId, CourseId, CourseStatus, GraduatedAt
+FROM UserCourseStatus;
 GO
 
-CREATE VIEW vw_student_exams AS
-SELECT e.*
-FROM EXAMS e
-JOIN COURSES c ON e.course_id = c.course_id
-JOIN PAYMENTS p ON p.course_id = c.course_id
-JOIN USERS u ON p.user_id = u.user_id
-WHERE u.user_name = SYSTEM_USER;
-GO
-GRANT SELECT ON vw_student_exams TO Student;
+CREATE VIEW PaymentsView
+AS
+SELECT PaymentId, UserId, CourseId, PaymentDesc, PaymentAmount, PaymentMethod, CreatedAt
+FROM Payments;
 GO
 
-CREATE VIEW vw_student_questions AS
-SELECT q.*
-FROM QUESTIONS q
-JOIN EXAMS e ON q.exam_id = e.exam_id
-JOIN COURSES c ON e.course_id = c.course_id
-JOIN PAYMENTS p ON p.course_id = c.course_id
-JOIN USERS u ON p.user_id = u.user_id
-WHERE u.user_name = SYSTEM_USER;
-GO
-GRANT SELECT ON vw_student_questions TO Student;
+
+GRANT SELECT ON UsersView TO analyst_role;
+GRANT SELECT ON CoursesView TO analyst_role;
+GRANT SELECT ON ChaptersView TO analyst_role;
+GRANT SELECT ON LessonsView TO analyst_role;
+GRANT SELECT ON VideosView TO analyst_role;
+GRANT SELECT ON ExamsView TO analyst_role;
+GRANT SELECT ON AssignmentsView TO analyst_role;
+GRANT SELECT ON QuestionsView TO analyst_role;
+GRANT SELECT ON FeedbackView TO analyst_role;
+GRANT SELECT ON UserProgressView TO analyst_role;
+GRANT SELECT ON UserCourseStatusView TO analyst_role;
+GRANT SELECT ON PaymentsView TO analyst_role;
 GO
 
-CREATE VIEW vw_student_documents AS
-SELECT d.*
-FROM DOCUMENTS d
-JOIN LESSONS l ON d.lesson_id = l.lesson_id
-JOIN CHAPTERS ch ON l.chapter_id = ch.chapter_id
-JOIN COURSES c ON ch.course_id = c.course_id
-JOIN PAYMENTS p ON p.course_id = c.course_id
-JOIN USERS u ON p.user_id = u.user_id
-WHERE u.user_name = SYSTEM_USER;
-GO
-GRANT SELECT ON vw_student_documents TO Student;
-GO
-
-CREATE VIEW vw_student_user_progress AS
-SELECT up.*
-FROM USER_PROGRESS up
-JOIN USERS u ON up.user_id = u.user_id
-WHERE u.user_name = SYSTEM_USER;
-GO
-GRANT SELECT, INSERT, UPDATE ON vw_student_user_progress TO Student;
+DENY SELECT, INSERT, UPDATE, DELETE, ALTER ON Users TO analyst_role;
+DENY SELECT, INSERT, UPDATE, DELETE, ALTER ON Courses TO analyst_role;
+DENY SELECT, INSERT, UPDATE, DELETE, ALTER ON Chapters TO analyst_role;
+DENY SELECT, INSERT, UPDATE, DELETE, ALTER ON Lessons TO analyst_role;
+DENY SELECT, INSERT, UPDATE, DELETE, ALTER ON Videos TO analyst_role;
+DENY SELECT, INSERT, UPDATE, DELETE, ALTER ON Exams TO analyst_role;
+DENY SELECT, INSERT, UPDATE, DELETE, ALTER ON Assignments TO analyst_role;
+DENY SELECT, INSERT, UPDATE, DELETE, ALTER ON Questions TO analyst_role;
+DENY SELECT, INSERT, UPDATE, DELETE, ALTER ON Answers TO analyst_role;
+DENY SELECT, INSERT, UPDATE, DELETE, ALTER ON Feedback TO analyst_role;
+DENY SELECT, INSERT, UPDATE, DELETE, ALTER ON UserProgress TO analyst_role;
+DENY SELECT, INSERT, UPDATE, DELETE, ALTER ON UserCourseStatus TO analyst_role;
+DENY SELECT, INSERT, UPDATE, DELETE, ALTER ON Payments TO analyst_role;
 GO
 
-CREATE VIEW vw_student_feedback AS
-SELECT f.*
-FROM FEEDBACK f
-JOIN USERS u ON f.user_id = u.user_id
-WHERE u.user_name = SYSTEM_USER;
-GO
-GRANT SELECT, INSERT ON vw_student_feedback TO Student;
+-- Gán vai trò analyst_role cho người dùng Le Nam Hung
+ALTER ROLE analyst_role ADD MEMBER lenamhung;
 GO
