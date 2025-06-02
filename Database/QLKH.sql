@@ -142,11 +142,11 @@ CREATE TABLE Feedback (
     FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE CASCADE,
     FOREIGN KEY (CourseId) REFERENCES Courses(CourseId) ON DELETE CASCADE,
     FOREIGN KEY (ChapterId) REFERENCES Chapters(ChapterId) ON DELETE CASCADE,
-    FOREIGN KEY (LessonId) REFERENCES Lessons(LessonId) ON DELETE CASCADE
+    FOREIGN KEY (LessonId) REFERENCES Lessons(LessonId) ON DELETE CASCADE,
     CHECK (
-        (course_id IS NOT NULL AND chapter_id IS NULL AND lesson_id IS NULL)
-        OR (chapter_id IS NOT NULL AND lesson_id IS NULL)
-        OR (lesson_id IS NOT NULL)
+        (CourseId IS NOT NULL AND ChapterId IS NULL AND LessonId IS NULL)
+        OR (ChapterId IS NOT NULL AND LessonId IS NULL)
+        OR (LessonId IS NOT NULL)
     )
 );
 
