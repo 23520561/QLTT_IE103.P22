@@ -143,6 +143,11 @@ CREATE TABLE Feedback (
     FOREIGN KEY (CourseId) REFERENCES Courses(CourseId) ON DELETE CASCADE,
     FOREIGN KEY (ChapterId) REFERENCES Chapters(ChapterId) ON DELETE CASCADE,
     FOREIGN KEY (LessonId) REFERENCES Lessons(LessonId) ON DELETE CASCADE
+    CHECK (
+        (course_id IS NOT NULL AND chapter_id IS NULL AND lesson_id IS NULL)
+        OR (chapter_id IS NOT NULL AND lesson_id IS NULL)
+        OR (lesson_id IS NOT NULL)
+    )
 );
 
 CREATE TRIGGER CreateAt_Course_Chapter
