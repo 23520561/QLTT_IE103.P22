@@ -560,22 +560,7 @@ BEGIN
         );
     END
 END;
-CREATE TRIGGER PaymentAmount_Validation
-ON Payments
-AFTER UPDATE
-AS
-BEGIN
-    IF EXISTS (
-        SELECT 1
-        FROM Inserted i
-        JOIN Deleted d ON i.PaymentId = d.PaymentId AND i.UserId = d.UserId AND i.CourseId = d.CourseId
-        WHERE i.PaymentAmount > d.PaymentAmount
-    )
-    BEGIN
-        RAISERROR('Giá trị tiền được chỉnh sửa không thể lớn hơn giá trị ban đầu', 16, 1);
-        ROLLBACK TRANSACTION;
-    END
-END;
+
 
 CREATE PROCEDURE Update_Create_Payment_CourseStatus
     @PaymentId INT,
