@@ -7,7 +7,7 @@ CREATE TABLE Users (
     UserName NVARCHAR(100) NOT NULL,
     UserEmail VARCHAR(100) NOT NULL UNIQUE,
     UserPassword VARCHAR(100) NOT NULL,
-    PhoneNumber NVARCHAR(20),
+    PhoneNumber VARCHAR(20),
     UserAddress NVARCHAR(200),
     CONSTRAINT CHK_Email CHECK (UserEmail LIKE '%@%.%')
 );
@@ -64,7 +64,7 @@ CREATE TABLE Exams (
     ExamId INT PRIMARY KEY,
     CourseId INT NOT NULL,
     ChapterId INT,
-    ExamName VARCHAR(100) NOT NULL,
+    ExamName NVARCHAR(100) NOT NULL,
     ExamDuration INT NOT NULL CHECK (ExamDuration > 0),
     ExamDesc TEXT,
     CreatedAt DATETIME NOT NULL DEFAULT GETDATE(),
@@ -83,13 +83,13 @@ CREATE TABLE Assignments (
 
 CREATE TABLE Answers (
     AnswerId INT PRIMARY KEY,
-    AnswerText TEXT NOT NULL
+    AnswerText NTEXT NOT NULL
 );
 
 CREATE TABLE Questions (
     QuestionId INT PRIMARY KEY,
-    QuestionText TEXT NOT NULL,
-    QuestionType VARCHAR(50) NOT NULL,
+    QuestionText NTEXT NOT NULL,
+    QuestionType NVARCHAR(50) NOT NULL,
     QuestionScore DECIMAL(5,2) NOT NULL CHECK (QuestionScore >= 0),
     AnswerId INT,
     ExamId INT,
@@ -107,7 +107,7 @@ CREATE TABLE Payments (
     PaymentId INT PRIMARY KEY,
     UserId INT NOT NULL,
     CourseId INT NOT NULL,
-    PaymentDesc TEXT,
+    PaymentDesc NTEXT,
     PaymentAmount DECIMAL(10,2) NOT NULL CHECK (PaymentAmount >= 0),
     PaymentMethod VARCHAR(50) NOT NULL,
     CreatedAt DATETIME NOT NULL DEFAULT GETDATE(),
@@ -128,7 +128,7 @@ CREATE TABLE UserProgress (
 CREATE TABLE UserCourseStatus (
     UserId INT NOT NULL,
     CourseId INT NOT NULL,
-    CourseStatus VARCHAR(50) NOT NULL DEFAULT 'in_progress',
+    CourseStatus NNVARCHAR(50) NOT NULL DEFAULT 'in_progress',
     GraduatedAt DATETIME,
     PRIMARY KEY (UserId, CourseId),
     FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE CASCADE,
@@ -142,7 +142,65 @@ CREATE TABLE Feedback (
     ChapterId INT,
     LessonId INT,
     Rating INT NOT NULL CHECK (Rating BETWEEN 1 AND 5),
-    FeedbackComment TEXT,
+    FeedbackComment N;
+
+CREATE TABLE Questions (
+    QuestionId INT PRIMARY KEY,
+    QuestionText NTEXT NOT NULL,
+    QuestionType NVARCHAR(50) NOT NULL,
+    QuestionScore DECIMAL(5,2) NOT NULL CHECK (QuestionScore >= 0),
+    AnswerId INT,
+    ExamId INT,
+    AssignmentId INT,
+    FOREIGN KEY (AnswerId) REFERENCES Answers(AnswerId) ON DELETE SET NULL,
+    FOREIGN KEY (ExamId) REFERENCES Exams(ExamId) ON DELETE CASCADE,
+    FOREIGN KEY (AssignmentId) REFERENCES Assignments(AssignmentId) ON DELETE NO ACTION, 
+    CONSTRAINT CHK_Question CHECK (
+        (ExamId IS NOT NULL AND AssignmentId IS NULL) OR
+        (ExamId IS NULL AND AssignmentId IS NOT NULL)
+    )
+);
+
+CREATE TABLE Payments (
+    PaymentId INT PRIMARY KEY,
+    UserId INT NOT NULL,
+    CourseId INT NOT NULL,
+    PaymentDesc NTEXT,
+    PaymentAmount DECIMAL(10,2) NOT NULL CHECK (PaymentAmount >= 0),
+    PaymentMethod VARCHAR(50) NOT NULL,
+    CreatedAt DATETIME NOT NULL DEFAULT GETDATE(),
+    FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE CASCADE,
+    FOREIGN KEY (CourseId) REFERENCES Courses(CourseId) ON DELETE NO ACTION 
+);
+
+CREATE TABLE UserProgress (
+    UserId INT NOT NULL,
+    VideoId INT NOT NULL,
+    IsComplete BIT NOT NULL DEFAULT 0,
+    CompletedAt DATETIME,
+    PRIMARY KEY (UserId, VideoId),
+    FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE CASCADE,
+    FOREIGN KEY (VideoId) REFERENCES Videos(VideoId) ON DELETE CASCADE
+);
+
+CREATE TABLE UserCourseStatus (
+    UserId INT NOT NULL,
+    CourseId INT NOT NULL,
+    CourseStatus NVARCHAR(50) NOT NULL DEFAULT 'in_progress',
+    GraduatedAt DATETIME,
+    PRIMARY KEY (UserId, CourseId),
+    FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE CASCADE,
+    FOREIGN KEY (CourseId) REFERENCES Courses(CourseId) ON DELETE NO ACTION 
+);
+
+CREATE TABLE Feedback (
+    FeedbackId INT PRIMARY KEY,
+    UserId INT NOT NULL,
+    CourseId INT,
+    ChapterId INT,
+    LessonId INT,
+    Rating INT NOT NULL CHECK (Rating BETWEEN 1 AND 5),
+    FeedbackComment NTEXT,
     CreatedAt DATETIME NOT NULL DEFAULT GETDATE(),
     FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE CASCADE,
     FOREIGN KEY (CourseId) REFERENCES Courses(CourseId) ON DELETE NO ACTION, 
@@ -356,11 +414,11 @@ GO
 -- Tạo các stored procedures
 CREATE PROCEDURE Update_Create_User
     @UserId INT,
-    @UserName VARCHAR(100),
+    @UserName NVARCHAR(100),
     @UserEmail VARCHAR(100),
     @UserPassword VARCHAR(100),
     @PhoneNumber VARCHAR(20),
-    @UserAddress VARCHAR(200)
+    @UserAddress NVARCHAR(200)
 AS
 BEGIN
     SET NOCOUNT ON;
