@@ -469,7 +469,7 @@ GO
 CREATE PROCEDURE Update_Create_Chapter
     @ChapterId INT,
     @CourseId INT,
-    @ChapterTitle VARCHAR(100),
+    @ChapterTitle NVARCHAR(100),
     @ChapterDesc TEXT,
     @ChapterPosition INT
 AS
@@ -495,7 +495,7 @@ GO
 CREATE PROCEDURE Update_Create_Video
     @VideoId INT,
     @VideoUrl VARCHAR(200),
-    @VideoDesc TEXT,
+    @VideoDesc NTEXT,
     @VideoDuration INT
 AS
 BEGIN
@@ -520,8 +520,8 @@ CREATE PROCEDURE Update_Create_Lesson
     @LessonId INT,
     @ChapterId INT,
     @VideoId INT,
-    @LessonTitle VARCHAR(100),
-    @LessonDesc TEXT
+    @LessonTitle NVARCHAR(100),
+    @LessonDesc NTEXT
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -546,7 +546,7 @@ CREATE PROCEDURE Update_Create_Document
     @DocumentId INT,
     @LessonId INT,
     @DocumentUrl VARCHAR(200),
-    @DocumentDesc TEXT
+    @DocumentDesc NTEXT
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -570,9 +570,9 @@ CREATE PROCEDURE Update_Create_Exam
     @ExamId INT,
     @CourseId INT,
     @ChapterId INT,
-    @ExamName VARCHAR(100),
+    @ExamName NVARCHAR(100),
     @ExamDuration INT,
-    @ExamDesc TEXT
+    @ExamDesc NTEXT
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -598,7 +598,7 @@ CREATE PROCEDURE Update_Create_Assignment
     @AssignmentId INT,
     @LessonId INT,
     @AssignmentDuration INT,
-    @AssignmentDesc TEXT
+    @AssignmentDesc NTEXT
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -620,8 +620,8 @@ GO
 
 CREATE PROCEDURE Update_Insert_Question
     @QuestionId INT,
-    @QuestionText TEXT,
-    @QuestionType VARCHAR(50),
+    @QuestionText NTEXT,
+    @QuestionType NVARCHAR(50),
     @QuestionScore DECIMAL(5,2),
     @AnswerId INT,
     @ExamId INT,
@@ -652,9 +652,9 @@ CREATE PROCEDURE Update_Create_Payment_CourseStatus
     @PaymentId INT,
     @UserId INT,
     @CourseId INT,
-    @PaymentDesc TEXT,
+    @PaymentDesc NTEXT,
     @PaymentAmount DECIMAL(10,2),
-    @PaymentMethod VARCHAR(50)
+    @PaymentMethod NVARCHAR(50)
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -687,7 +687,7 @@ CREATE PROCEDURE Update_Create_Feedback
     @ChapterId INT,
     @LessonId INT,
     @Rating INT,
-    @FeedbackComment TEXT
+    @FeedbackComment NTEXT
 AS
 BEGIN
     SET NOCOUNT ON;
