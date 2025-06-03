@@ -149,11 +149,6 @@ CREATE TABLE Feedback (
     FOREIGN KEY (CourseId) REFERENCES Courses(CourseId) ON DELETE NO ACTION, 
     FOREIGN KEY (ChapterId) REFERENCES Chapters(ChapterId) ON DELETE NO ACTION,
     FOREIGN KEY (LessonId) REFERENCES Lessons(LessonId) ON DELETE NO ACTION,
-    CONSTRAINT CHK_Feedback CHECK (
-        (CourseId IS NOT NULL AND ChapterId IS NULL AND LessonId IS NULL)
-        OR (CourseId IS NOT NULL AND ChapterId IS NOT NULL AND LessonId IS NULL)
-        OR (CourseId IS NOT NULL AND ChapterId IS NOT NULL AND LessonId IS NOT NULL)
-    )
 );
 GO
 
