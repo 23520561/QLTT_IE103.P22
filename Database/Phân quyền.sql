@@ -12,9 +12,6 @@ CREATE USER voducanhhuy FOR LOGIN dev_user;
 CREATE USER lenamhung FOR LOGIN analyst_user;
 GO
 
-USE course_management_db;
-GO
-
 -- Tạo vai trò
 CREATE ROLE admin_role;
 CREATE ROLE dev_role;
