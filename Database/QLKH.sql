@@ -142,7 +142,7 @@ CREATE TABLE Feedback (
     FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE CASCADE,
     FOREIGN KEY (CourseId) REFERENCES Courses(CourseId) ON DELETE CASCADE,
     FOREIGN KEY (ChapterId) REFERENCES Chapters(ChapterId) ON DELETE CASCADE,
-    FOREIGN KEY (LessonId) REFERENCES Lessons(LessonId) ON DELETE CASCADE
+    FOREIGN KEY (LessonId) REFERENCES Lessons(LessonId) ON DELETE CASCADE,
     CHECK (
         (CourseId IS NOT NULL AND ChapterId IS NULL AND LessonId IS NULL)
         OR (ChapterId IS NOT NULL AND LessonId IS NULL)
@@ -282,7 +282,7 @@ BEGIN
     SELECT TOP 1 @CourseId = c.CourseId
     FROM Videos v
     JOIN Lessons l ON v.VideoId = l.VideoId
-    JOIN Chapters ch ON l.Chapter_Id = ch.Chapter_Id
+    JOIN Chapters ch ON l.ChapterId = ch.ChapterId
     JOIN Courses c ON ch.CourseId = c.CourseId
     WHERE v.VideoId = @VideoId;
 
@@ -290,7 +290,7 @@ BEGIN
         SELECT 1
         FROM Videos v
         JOIN Lessons l ON v.VideoId = l.VideoId
-        JOIN Chapters ch ON l.Chapter_Id = ch.Chapter_Id
+        JOIN Chapters ch ON l.ChapterId = ch.ChapterId
         WHERE ch.CourseId = @CourseId
         AND NOT EXISTS (
             SELECT 1
