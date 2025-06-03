@@ -1,20 +1,3 @@
--- Xóa dữ liệu cũ để tránh xung đột
-DELETE FROM FEEDBACK;
-DELETE FROM USER_COURSE_STATUS;
-DELETE FROM USER_PROGRESS;
-DELETE FROM PAYMENTS;
-DELETE FROM QUESTIONS;
-DELETE FROM ANSWERS;
-DELETE FROM ASSIGNMENTS;
-DELETE FROM EXAMS;
-DELETE FROM DOCUMENTS;
-DELETE FROM LESSONS;
-DELETE FROM VIDEOS;
-DELETE FROM CHAPTERS;
-DELETE FROM COURSES;
-DELETE FROM USERS;
-GO
-
 INSERT INTO Users (UserId, UserName, UserEmail, UserPassword, PhoneNumber, UserAddress) VALUES
 (1, N'Nguyễn Văn An', 'nguyenvanan@gmail.com', 'MatKhau123', '0905123456', N'123 Đường Láng, Đống Đa, Hà Nội'),
 (2, N'Trần Thị Bình', 'tranthibinh@yahoo.com', 'Binh45678', '0912345678', N'45 Nguyễn Huệ, TP Huế'),
