@@ -189,59 +189,6 @@ BEGIN
 END;
 GO
 
-CREATE TRIGGER CreatedAt_Chapter_Exam
-ON Exams
-AFTER INSERT, UPDATE
-AS
-BEGIN
-    IF EXISTS (
-        SELECT 1
-        FROM inserted i
-        JOIN Chapters c ON i.ChapterId = c.ChapterId
-        WHERE i.CreatedAt <= c.CreatedAt AND i.ChapterId IS NOT NULL
-    )
-    BEGIN
-        RAISERROR ('Exam must be created after Chapter', 16, 1);
-        ROLLBACK TRANSACTION;
-    END
-END;
-GO
-
-CREATE TRIGGER CreatedAt_Lesson_Document
-ON Documents
-AFTER INSERT, UPDATE
-AS
-BEGIN
-    IF EXISTS (
-        SELECT 1
-        FROM inserted i
-        JOIN Lessons l ON i.LessonId = l.LessonId
-        WHERE i.CreatedAt <= l.CreatedAt
-    )
-    BEGIN
-        RAISERROR ('Document must be created after Lesson', 16, 1);
-        ROLLBACK TRANSACTION;
-    END
-END;
-GO
-
-CREATE TRIGGER CreatedAt_Lesson_Assignment
-ON Assignments
-AFTER INSERT, UPDATE
-AS
-BEGIN
-    IF EXISTS (
-        SELECT 1
-        FROM inserted i
-        JOIN Lessons l ON i.LessonId = l.LessonId
-        WHERE i.CreatedAt <= l.CreatedAt
-    )
-    BEGIN
-        RAISERROR ('Assignment must be created after Lesson', 16, 1);
-        ROLLBACK TRANSACTION;
-    END
-END;
-GO
 
 CREATE TRIGGER CreatedAt_Course_Feedback
 ON Feedback
@@ -318,36 +265,7 @@ BEGIN
 END;
 GO
 
-CREATE TRIGGER trg_ResetAndInitializeUserProgress
-ON Payments
-AFTER INSERT
-AS
-BEGIN
-    SET NOCOUNT ON;
 
-    DELETE UP
-    FROM UserProgress UP
-    JOIN inserted i ON UP.UserId = i.UserId
-    JOIN Lessons l ON l.VideoId = UP.VideoId
-    JOIN Chapters c ON l.ChapterId = c.ChapterId
-    WHERE c.CourseId = i.CourseId;
-
-    DELETE UCS
-    FROM UserCourseStatus UCS
-    JOIN inserted i ON UCS.UserId = i.UserId AND UCS.CourseId = i.CourseId;
-
-    INSERT INTO UserProgress (UserId, VideoId, IsComplete, CompletedAt)
-    SELECT i.UserId, v.VideoId, 0, NULL
-    FROM inserted i
-    JOIN Chapters c ON c.CourseId = i.CourseId
-    JOIN Lessons l ON l.ChapterId = c.ChapterId
-    JOIN Videos v ON v.VideoId = l.VideoId;
-
-    INSERT INTO UserCourseStatus (UserId, CourseId, CourseStatus, GraduatedAt)
-    SELECT i.UserId, i.CourseId, 'in_progress', NULL
-    FROM inserted i;
-END;
-GO
 
 CREATE TRIGGER PaymentAmount_Validation
 ON Payments
