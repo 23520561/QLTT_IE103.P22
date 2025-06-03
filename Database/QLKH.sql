@@ -1,4 +1,5 @@
 CREATE DATABASE QLKH
+go
 USE QLKH
 
 -- Tạo các bảng
@@ -66,7 +67,7 @@ CREATE TABLE Exams (
     ChapterId INT,
     ExamName NVARCHAR(100) NOT NULL,
     ExamDuration INT NOT NULL CHECK (ExamDuration > 0),
-    ExamDesc TEXT,
+    ExamDesc NTEXT,
     CreatedAt DATETIME NOT NULL DEFAULT GETDATE(),
     FOREIGN KEY (CourseId) REFERENCES Courses(CourseId) ON DELETE CASCADE,
     FOREIGN KEY (ChapterId) REFERENCES Chapters(ChapterId) ON DELETE NO ACTION
@@ -76,7 +77,7 @@ CREATE TABLE Assignments (
     AssignmentId INT PRIMARY KEY,
     LessonId INT NOT NULL,
     AssignmentDuration INT NOT NULL CHECK (AssignmentDuration > 0),
-    AssignmentDesc TEXT,
+    AssignmentDesc NTEXT,
     CreatedAt DATETIME NOT NULL DEFAULT GETDATE(),
     FOREIGN KEY (LessonId) REFERENCES Lessons(LessonId) ON DELETE CASCADE
 );
@@ -109,65 +110,7 @@ CREATE TABLE Payments (
     CourseId INT NOT NULL,
     PaymentDesc NTEXT,
     PaymentAmount DECIMAL(10,2) NOT NULL CHECK (PaymentAmount >= 0),
-    PaymentMethod VARCHAR(50) NOT NULL,
-    CreatedAt DATETIME NOT NULL DEFAULT GETDATE(),
-    FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE CASCADE,
-    FOREIGN KEY (CourseId) REFERENCES Courses(CourseId) ON DELETE NO ACTION 
-);
-
-CREATE TABLE UserProgress (
-    UserId INT NOT NULL,
-    VideoId INT NOT NULL,
-    IsComplete BIT NOT NULL DEFAULT 0,
-    CompletedAt DATETIME,
-    PRIMARY KEY (UserId, VideoId),
-    FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE CASCADE,
-    FOREIGN KEY (VideoId) REFERENCES Videos(VideoId) ON DELETE CASCADE
-);
-
-CREATE TABLE UserCourseStatus (
-    UserId INT NOT NULL,
-    CourseId INT NOT NULL,
-    CourseStatus NNVARCHAR(50) NOT NULL DEFAULT 'in_progress',
-    GraduatedAt DATETIME,
-    PRIMARY KEY (UserId, CourseId),
-    FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE CASCADE,
-    FOREIGN KEY (CourseId) REFERENCES Courses(CourseId) ON DELETE NO ACTION 
-);
-
-CREATE TABLE Feedback (
-    FeedbackId INT PRIMARY KEY,
-    UserId INT NOT NULL,
-    CourseId INT,
-    ChapterId INT,
-    LessonId INT,
-    Rating INT NOT NULL CHECK (Rating BETWEEN 1 AND 5),
-    FeedbackComment N;
-
-CREATE TABLE Questions (
-    QuestionId INT PRIMARY KEY,
-    QuestionText NTEXT NOT NULL,
-    QuestionType NVARCHAR(50) NOT NULL,
-    QuestionScore DECIMAL(5,2) NOT NULL CHECK (QuestionScore >= 0),
-    AnswerId INT,
-    ExamId INT,
-    AssignmentId INT,
-    FOREIGN KEY (AnswerId) REFERENCES Answers(AnswerId) ON DELETE SET NULL,
-    FOREIGN KEY (ExamId) REFERENCES Exams(ExamId) ON DELETE CASCADE,
-    FOREIGN KEY (AssignmentId) REFERENCES Assignments(AssignmentId) ON DELETE NO ACTION, 
-    CONSTRAINT CHK_Question CHECK (
-        (ExamId IS NOT NULL AND AssignmentId IS NULL) OR
-        (ExamId IS NULL AND AssignmentId IS NOT NULL)
-    )
-);
-
-CREATE TABLE Payments (
-    PaymentId INT PRIMARY KEY,
-    UserId INT NOT NULL,
-    CourseId INT NOT NULL,
-    PaymentDesc NTEXT,
-    PaymentAmount DECIMAL(10,2) NOT NULL CHECK (PaymentAmount >= 0),
-    PaymentMethod VARCHAR(50) NOT NULL,
+    PaymentMethod NVARCHAR(50) NOT NULL,
     CreatedAt DATETIME NOT NULL DEFAULT GETDATE(),
     FOREIGN KEY (UserId) REFERENCES Users(UserId) ON DELETE CASCADE,
     FOREIGN KEY (CourseId) REFERENCES Courses(CourseId) ON DELETE NO ACTION 
@@ -331,10 +274,10 @@ BEGIN
     IF EXISTS (
         SELECT 1
         FROM inserted i
-        WHERE i.IsComplete = 1 AND (i.CompletedAt IS NULL OR i.CompletedAt < 90)
+        WHERE i.IsComplete = 1 AND i.CompletedAt IS NULL
     )
     BEGIN
-        RAISERROR('Chỉ hoàn thành video khi đã xem 90% video', 16, 1);
+        RAISERROR ('Video completion requires a valid CompletedAt timestamp', 16, 1);
         ROLLBACK TRANSACTION;
     END
 END;
@@ -411,6 +354,24 @@ BEGIN
 END;
 GO
 
+CREATE TRIGGER PaymentAmount_Validation
+ON Payments
+AFTER UPDATE
+AS
+BEGIN
+    IF EXISTS (
+        SELECT 1
+        FROM Inserted i
+        JOIN Deleted d ON i.PaymentId = d.PaymentId
+        WHERE i.PaymentAmount > d.PaymentAmount
+    )
+    BEGIN
+        RAISERROR ('Payment amount cannot be increased after initial value', 16, 1);
+        ROLLBACK TRANSACTION;
+    END
+END;
+GO
+
 -- Tạo các stored procedures
 CREATE PROCEDURE Update_Create_User
     @UserId INT,
@@ -442,8 +403,8 @@ GO
 
 CREATE PROCEDURE Update_Create_Course
     @CourseId INT,
-    @CourseTitle VARCHAR(100),
-    @CourseDesc TEXT,
+    @CourseTitle NVARCHAR(100),
+    @CourseDesc NTEXT,
     @CoursePrice DECIMAL(10,2),
     @Author INT
 AS
@@ -470,7 +431,7 @@ CREATE PROCEDURE Update_Create_Chapter
     @ChapterId INT,
     @CourseId INT,
     @ChapterTitle NVARCHAR(100),
-    @ChapterDesc TEXT,
+    @ChapterDesc NTEXT,
     @ChapterPosition INT
 AS
 BEGIN
@@ -521,7 +482,7 @@ CREATE PROCEDURE Update_Create_Lesson
     @ChapterId INT,
     @VideoId INT,
     @LessonTitle NVARCHAR(100),
-    @LessonDesc NTEXT
+    @LessonDesc TEXT
 AS
 BEGIN
     SET NOCOUNT ON;
