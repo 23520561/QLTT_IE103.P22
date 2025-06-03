@@ -144,9 +144,9 @@ CREATE TABLE Feedback (
     FOREIGN KEY (ChapterId) REFERENCES Chapters(ChapterId) ON DELETE CASCADE,
     FOREIGN KEY (LessonId) REFERENCES Lessons(LessonId) ON DELETE CASCADE
     CHECK (
-        (course_id IS NOT NULL AND chapter_id IS NULL AND lesson_id IS NULL)
-        OR (chapter_id IS NOT NULL AND lesson_id IS NULL)
-        OR (lesson_id IS NOT NULL)
+        (CourseId IS NOT NULL AND ChapterId IS NULL AND LessonId IS NULL)
+        OR (ChapterId IS NOT NULL AND LessonId IS NULL)
+        OR (LessonId IS NOT NULL)
     )
 );
 
@@ -258,10 +258,10 @@ BEGIN
     IF EXISTS (
         SELECT 1
         FROM inserted i
-        WHERE i.IsComplete = 1 AND (i.CompletedAt IS NULL OR i.CompletedAt < 100)
+        WHERE i.IsComplete = 1 AND (i.CompletedAt IS NULL OR i.CompletedAt < 90)
     )
     BEGIN
-        RAISERROR('Chỉ hoàn thành video khi đã xem 100% video', 16, 1);
+        RAISERROR('Chỉ hoàn thành video khi đã xem 90% video', 16, 1);
         ROLLBACK TRANSACTION;
     END
 END;
